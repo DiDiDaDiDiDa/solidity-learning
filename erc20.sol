@@ -125,6 +125,7 @@ contract MyToken is Context{
          require(spender!=address(0),"ERC20:mint to the zero address");
         require(_balances[owner]>=amount, unicode"ERC20:余额不足");
         _allowances[owner][spender]=amount;
+        emit Approval(owner,spender,amount);
 
     }
 
@@ -136,6 +137,7 @@ contract MyToken is Context{
             _approve(owner,spender,currentAllowance-amount);
         }
     }
+
 
     
 }
