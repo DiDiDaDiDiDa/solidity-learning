@@ -18,7 +18,7 @@ contract AssertError {
       require(a<10,"args must less 10!");
       return a ;
   }
-
+ 
 //   error
 error MustLess10(uint a);
 function errorTest(uint a)public pure returns(uint){
