@@ -2,6 +2,24 @@
 pragma solidity >0.8.0 <0.9.0;
 
 import "./context.sol";
+
+/*
+    ERC20需要实现的接口
+    function name() public view returns (string)
+    function symbol() public view returns (string)
+    function decimals() public view returns (uint8)
+    function totalSupply() public view returns (uint256)
+    function balanceOf(address _owner) public view returns (uint256 balance)
+    function transfer(address _to, uint256 _value) public returns (bool success)
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success)
+    function approve(address _spender, uint256 _value) public returns (bool success)
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining)
+
+    event Transfer(address indexed _from, address indexed _to, uint256 _value)
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value)
+
+
+    */
 contract MyToken is Context{
     // 1、代币信息
     // 代币名称name
@@ -33,6 +51,11 @@ contract MyToken is Context{
          _mint(_msgSender(),100*10000*10**_decimals);
      }
 
+     
+    event Transfer(address indexed _from, address indexed _to, uint256 _value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+
+
      //3、取值器
     //  返回代币的名字
     function name()public view returns(string memory){
@@ -49,14 +72,32 @@ contract MyToken is Context{
          return _totalSupply;
     }
 
-    function balanceOf(address _owner) public view returns (uint256 balance){
+    function balanceOf(address _owner) public view returns (uint256){
         return _balances[_owner];
     }
-    function transfer(address _to, uint256 _value) public returns (bool success){
+    function allowancesOf(address owner,address spender) public view returns (uint256){
+        return _allowances[owner][spender];
+    }
+    function transfer(address _to, uint256 _value) public returns (bool){
         _transfer(_msgSender(),_to,_value);
         return true;
 
     }
+
+    function approve(address _spender, uint256 _value) public returns (bool){
+        address owner=_msgSender();
+        _approve(owner,_spender,_value);
+
+        return true;
+    }
+    function transferFrom(address from,address to,uint256 amount)public returns (bool){
+        address owner=_msgSender();
+        _spendAllowance(from,owner,amount);
+        _transfer(from,to,amount);
+        return true;
+    }
+
+
      // 合约内部函数
      function _mint(address account, uint256 amount) internal {
          require(account!=address(0),"ERC20:mint to the zero address");
@@ -77,24 +118,24 @@ contract MyToken is Context{
             _balances[_from]-=amount;
             _balances[_to]+=amount;
         }
-     
+        emit Transfer(_from,_to,amount);
+    }
+    function _approve(address owner,address spender,uint256 amount)internal {
+         require(owner!=address(0),"ERC20:mint to the zero address");
+         require(spender!=address(0),"ERC20:mint to the zero address");
+        require(_balances[owner]>=amount, unicode"ERC20:余额不足");
+        _allowances[owner][spender]=amount;
+
     }
 
+    function _spendAllowance(address owner ,address spender,uint256 amount)internal{
+        uint256 currentAllowance=allowancesOf(owner,spender);
+        require(_balances[owner]>=amount, unicode"ERC20:授款方余额不足");
+        require(currentAllowance>=amount, unicode"ERC20:授权余额不足");
+        unchecked{
+            _approve(owner,spender,currentAllowance-amount);
+        }
+    }
 
-    /*
-    function name() public view returns (string)
-    function symbol() public view returns (string)
-    function decimals() public view returns (uint8)
-    function totalSupply() public view returns (uint256)
-    function balanceOf(address _owner) public view returns (uint256 balance)
-    function transfer(address _to, uint256 _value) public returns (bool success)
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success)
-    function approve(address _spender, uint256 _value) public returns (bool success)
-    function allowance(address _owner, address _spender) public view returns (uint256 remaining)
-
-    event Transfer(address indexed _from, address indexed _to, uint256 _value)
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value)
-
-
-    */
+    
 }
